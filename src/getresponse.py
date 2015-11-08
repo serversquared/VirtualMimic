@@ -1,12 +1,20 @@
+import sqlite3
+
+import stat_parser
+
 class BadSentenceError(Exception):
+    _msg = ''
+
     def __init__(self, msg):
-        _msg = msg
+        self._msg = msg
 
     def __str__(self):
-        print(_msg)
+        return self._msg
 
 def getResponse(sentence):
     try:
+        parser = stat_parser.Parser()
+        tree = parser.parse(sentence)
         #TODO
         pass
     except TypeError as e:
