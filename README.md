@@ -5,4 +5,3 @@ Analyses sentences and subsequent responses to those sentences, and creates a ch
 This project requires the following libraries:
 * nltk - Install it via pip2
 * [pyStatParser](https://github.com/emilmont/pyStatParser)
-* [twitcurl](https://github.com/swatkat/twitcurl/ "TwitCurl Github Repository")
