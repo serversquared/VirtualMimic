@@ -71,18 +71,19 @@ while True:
             if not prev is None:
                 try:
                     sid.feed(prev[1],line[1])
+                    exceptCount = 0
+                    prev = line
                 except KeyboardInterrupt:
                     sys.exit(0)
-                    exceptCount = 0
                 except Exception as e:
-                    print(e)
-                    print("(On log line {})".format(line[2]))
+                    print("{} on line {}".format(e, line[2]))
                     prev = None
                     exceptCount += 1
                     if exceptCount >= EXCEPTION_LIMIT:
                         prematureBreak = True
                         break
-            prev = line
+            else:
+                prev = line
         if prematureBreak:
             print('Feeding cutoff prematurely\n')
         else:

@@ -45,14 +45,17 @@ def parse_log(logfile, logformat="clozure", old_message_list=False):
                             # message_list.append(message)
                         if not last_message:
                             last_message = message
-                            message_list.append(message.append(linenum))
+                            message.append(linenum)
+                            message_list.append(message)
                         elif last_message and last_message[0] != message[0]:
-                            message_list.append(last_message.append(linenum))
+                            last_message.append(linenum)
+                            message_list.append(last_message)
                             last_message = message
                         elif last_message and last_message[0] == message[0]:
                             last_message[1] = last_message[1] + " " + message[1]
             if message:
-                message_list.append(message.append(linenum))
+                message.append(linenum)
+                message_list.append(message)
         except UnicodeDecodeError as err:
             print("Unicode Error: " + str(err) + " in " + logfile + " line " + str(linenum))
             # raise
