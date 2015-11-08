@@ -5,8 +5,8 @@ import db
 parser = stat_parser.Parser()
 
 def insert_node(cursor,gtype,order=0,parent_id=None,word=None):
-    print(type(gtype))
-    print(gtype)
+    #print(type(gtype))
+    #print(gtype)
     cursor.execute("""INSERT INTO nodes (`parent_id`,`type`,`order`,`word`)
                    VALUES (?,?,?,?)""",
                    (parent_id,gtype,order,word))
@@ -27,6 +27,7 @@ def insert_struct(sentence,weight=1):
     global parser
     cursor = db.conn.cursor()
     res = insert_tree(cursor,parser.parse(sentence))
+    db.conn.commit()
     cursor.close()
     return res
 
