@@ -1,6 +1,7 @@
 from parser import parser
 from array_flatten import flatten
 import nltk
+from nltk import Tree
 import db
 """this is absolutely pointless
 class Node():
@@ -20,7 +21,7 @@ class Node():
 #db.conn.cursor()
 #    resu
 
-class nltk.Tree:
+class Tree():
     def sub_leaves(self):
         if isinstance(self[0],str):
             return [self]
@@ -43,10 +44,10 @@ class ShelTree(nltk.Tree):
     def has_ancestor(self,ancestor,by_id = False):
         p = self.parent
         while p is not None:
-            if by_id:
-                return True if id(p) == id(ancestor)
-            else:
-                return True if p == ancestor
+            if by_id and id(p) == id(ancestor):
+                return True 
+            elif p == ancestor:
+                return True
         return False
 
 def respond(input_str):
@@ -55,12 +56,10 @@ def respond(input_str):
 
 def find_similar(tree):
     c = db.conn.cursor()
-    stuff = {}
     goal = 20
     results = []
     stack = tree.sub_leaves
-    for
-    while stack and len(results) < 20:
+    while stack and len(results) < goal:
         item  = stack.pop()
         indx = 1
         froms = ["FROM nodes n1"]
@@ -91,13 +90,9 @@ def find_similar(tree):
         for row in c:
             results.append(row[0])
         stack = filter(lambda x: x.has_ancestor(ancestry[-1]),stack)
+    return results
 
-        
-        
-            
-
-
-"""
+'''
 def depth_search(c,node,results,num_results):
     if type(node[0]) == nltk.Tree:
         for child in node:
@@ -114,7 +109,7 @@ def depth_search(c,node,results,num_results):
 
 
 
-        '''
+        
         if results.length + count > num_results:
             #wooo, were done
             c.execute("""SELECT * FROM nodes WHERE type=?,word=?
