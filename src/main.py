@@ -76,6 +76,7 @@ while True:
                     exceptCount = 0
                 except Exception as e:
                     print(e)
+                    print("(On log line {})".format(line[2]))
                     prev = None
                     exceptCount += 1
                     if exceptCount >= EXCEPTION_LIMIT:
