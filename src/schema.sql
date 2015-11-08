@@ -14,3 +14,8 @@ CREATE TABLE IF NOT EXISTS nodes_to_nodes
 );
 
 
+CREATE INDEX IF NOT EXISTS awesome_index
+ON nodes (`parent_id`,`order`);
+
+CREATE INDEX IF NOT EXISTS cool_index
+ON nodes_to_nodes (`input`, `response`);
