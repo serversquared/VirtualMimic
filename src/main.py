@@ -16,6 +16,8 @@ import sentence_into_db as sid
 
 EXCEPTION_LIMIT = 10
 
+print(getresponse.getResponse("This will be ignored."))
+
 def getNumBetween(msg, first, last):
     # first and last are inclusive
     while True:
@@ -112,4 +114,4 @@ while True:
 
     else:
           print("Invalid option: {}\n".format(option))
-end
+

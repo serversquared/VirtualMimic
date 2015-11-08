@@ -1,3 +1,4 @@
+import random
 import sqlite3
 
 import db
@@ -13,17 +14,19 @@ class BadSentenceError(Exception):
         return self._msg
 
 def constrSen_recurser(par_id):
-    sentence = ""
+    words = []
     cursor = db.conn.cursor()
     cursor.execute("SELECT rowid, word FROM nodes WHERE parent_id=?", (par_id,))
     for row in cursor:
         if row[1]:
-            sentence += " " + row[1]
+            words.append(row[1])
         else:
-            sentence += " " + constrSen_recurser(row[0])
+            newWords = constrSen_recurser(row[0])
+            for w in newWords:
+                words.append(w)
     cursor.close()
 
-    return sentence
+    return words
 
 # Constructs a sentence
 def constrSen(sen_id):
@@ -33,22 +36,48 @@ def constrSen(sen_id):
     if row == None:
         raise BadSentenceError('bad sentence ID: {}'.format(sen_id))
     if not row[1]:
-        sentence = constrSen_recurser(sen_id)
+        words = constrSen_recurser(sen_id)
     else:
-        sentence = row[1]
+        words = [row[1]]
     cursor.close()
+
+    sentence = ""
+    for w in words:
+        sentence += w + ' '
 
     return sentence
 
+def findResponseID(input_id):
+    cursor = db.conn.cursor()
+    cursor.execute("SELECT input, response, weight FROM nodes_to_nodes WHERE input=?", (input_id,))
+    totalWeight = 0
+    responses = []
+    for row in cursor:
+        totalWeight += row[2]
+        responses.append((row[1], row[2]))
+    weightLimit = random.uniform(0, totalWeight)
+    weightSum = 0
+    for resp in responses:
+        weightSum += resp[1]
+        if weightSum >= weightLimit:
+            break
+
+    cursor.close()
+
+    return resp[0]
+
 def getResponse(sentence):
     try:
+        '''
         parser = stat_parser.Parser()
         tree = parser.parse(sentence)
-        print(tree)
+        '''
+        #TODO: get input_id
+        input_id = 1#DEBUG
+        resp_id = findResponseID(input_id)
+        sentence = constrSen(resp_id)
     except TypeError as e:
         raise BadSentenceError("bad sentence: {}".format(e))
 
-    return "TODO: PLACE HOLDER"
+    return sentence
 
-
-#TODO: test constrSen()
