@@ -1,3 +1,5 @@
+#!/usr/bin/python2
+
 """
 TODO:
  * learn from user as they talk to the bot
