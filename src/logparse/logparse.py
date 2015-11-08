@@ -9,18 +9,18 @@ def parse_message(message, logformat):
         else:
             sender = splitmessage[3][1:-1]
             message = " ".join(splitmessage[4:])
-            return sender, message
+            return [sender, message]
     elif logformat == "clozure":
         if len(splitmessage) <= 2 or (splitmessage[1][-1] != ":" and splitmessage[1][-1] != ">"):
             return False
         elif splitmessage[1][-1] == ">":
             sender = splitmessage[1][1:-1]
             message = " ".join(splitmessage[2:])
-            return sender, message
+            return [sender, message]
         elif splitmessage[1][-1] == ":":
             sender = splitmessage[1][:-1]
             message = " ".join(splitmessage[2:])
-            return sender, message
+            return [sender, message]
     else:
         raise NotImplementedError()
 
@@ -30,7 +30,8 @@ def parse_log(logfile, logformat="clozure", old_message_list=False):
     linenum = 0
     if old_message_list:
         message_list = old_message_list
-    last_message = ()
+    last_message = []
+    message = []
     with open(logfile) as f:
         try:
             for line in f:
@@ -39,9 +40,19 @@ def parse_log(logfile, logformat="clozure", old_message_list=False):
                 if line != "\n":
                     message = parse_message(line, logformat)
                     if message:
-                        if (last_message and last_message[0] != message[0]) or not last_message:
+                        # if (last_message and last_message[0] != message[0]) or not last_message:
+                            # last_message = message
+                            # message_list.append(message)
+                        if not last_message:
                             last_message = message
-                            message_list.append(message)
+                            message_list.append(message.append(linenum))
+                        elif last_message and last_message[0] != message[0]:
+                            message_list.append(last_message.append(linenum))
+                            last_message = message
+                        elif last_message and last_message[0] == message[0]:
+                            last_message[1] = last_message[1] + " " + message[1]
+            if message:
+                message_list.append(message.append(linenum))
         except UnicodeDecodeError as err:
             print("Unicode Error: " + str(err) + " in " + logfile + " line " + str(linenum))
             # raise

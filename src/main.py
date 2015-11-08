@@ -1,3 +1,10 @@
+#!/usr/bin/python2
+
+"""
+TODO:
+ * learn from user as they talk to the bot
+"""
+
 import os.path
 import sqlite3
 import sys
@@ -6,6 +13,25 @@ import db
 import getresponse
 import logparse.logparse as logparse
 import sentence_into_db as sid
+
+EXCEPTION_LIMIT = 10
+
+def getNumBetween(msg, first, last):
+    # first and last are inclusive
+    while True:
+        num = raw_input(msg)
+        print('')
+        try:
+            num = int(num)
+        except ValueError:
+            print("Not a valid integer")
+            print("Try again\n")
+            continue
+        if not first <= num <= last:
+            print("Number too small [{}, {}]".format(first, last))
+            print("Try again\n")
+        else:
+            return num
 
 while True:
     print('Options:')
@@ -17,33 +43,50 @@ while True:
     print('')
 
     if option == 'f':
-        path = raw_input('Enter a text file or directory of text files to feed: ')
-        '''
-        import sys
-        import os.path
-        import logparse.logparse as logparse
-        import sentence_into_db as sid
+        while True:
+            loc = raw_input('Enter a text file or directory of text files to feed: ')
+            print('')
 
-        start = int(sys.argv[1])
-        stop  = int(sys.argv[2])
-        loc   = sys.argv[3]
+            if os.path.isfile(loc):
+                logs = logparse.parse_log(loc)
+                break
+            elif os.path.isdir(loc):
+                logs = logparse.parse_dir(loc)
+                break
+            else:
+                print('Invalid file/directory path')
+                print('Try again\n')
 
-        if os.path.isfile(loc):
-            logs = logparse.parse_file(loc)
-        else:
-            logs = logparse.parse_dir(loc)
+        yesno = raw_input('Do you want to limit the number of feeds? (y/N): ')
+        if yesno.lower() == 'y':
+            feedCnt = getNumBetween('Enter number of feeds to do [{}, {}]: '.format(1, len(logs)),
+                                    1, len(logs))
+            logs = logs[:feedCnt]
 
-        logs_filtered = logs[start:stop]
-
+        print('Feeding (this will probably take awhile)...')
         prev = None
-        for line in logs_filtered:
-        if not prev is None:
-        try:
-            sid.feed(prev[1],line[1])
-        except TypeError as e:
-            print(e)
-        prev = line
-        '''
+        exceptCount = 0
+        prematureBreak = False
+        for line in logs:
+            if not prev is None:
+                try:
+                    sid.feed(prev[1],line[1])
+                except KeyboardInterrupt:
+                    sys.exit(0)
+                    exceptCount = 0
+                except Exception as e:
+                    print(e)
+                    print("(On log line {})".format(line[2]))
+                    prev = None
+                    exceptCount += 1
+                    if exceptCount >= EXCEPTION_LIMIT:
+                        prematureBreak = True
+                        break
+            prev = line
+        if prematureBreak:
+            print('Feeding cutoff prematurely\n')
+        else:
+            print('Done feeding\n')
 
     elif option == 't':
         while True:
@@ -60,7 +103,8 @@ while True:
                     print("Bot: {}\n".format(getresponse.getResponse(sentence)))
                 except getresponse.BadSentenceError as e:
                     print("ERROR: {}".format(e))
-                    print("Try again\n")
+                    print("Do not worry about this")
+                    print("Just try again\n")
 
     elif option == 'q':
         sys.exit(0)
