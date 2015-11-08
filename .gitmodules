@@ -1,0 +1,3 @@
+[submodule "pyStatParser"]
+	path = pyStatParser
+	url = https://github.com/emilmont/pyStatParser
