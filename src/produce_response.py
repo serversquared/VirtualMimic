@@ -23,26 +23,34 @@ class Node():
 
 class ShelTree(nltk.Tree):
     def __init__(self, node, children,parent=None):
+        print('node')
+        print(node)
+        print('children')
+        print(children)
         if parent is not None:
             self.parent = parent
+        """
         def bla(x):
+            print(x)
             if isinstance(x,list):
                 return ShelTree(x[0],x[1:],self)
             else:
-                return x
+                print('else')
+                #raise NotImplementedError
         children = filter(bla,children) 
+        """
         super(ShelTree,self).__init__(node,children)
         for child in self:
             print(child)
             if not isinstance(child,basestring):
                 child.parent = self
     def sub_leaves(self):
-        if isinstance(self[0],basestring):
+        if len(self) > 0 and isinstance(self[0],basestring):
             return [self]
         else:
             leaves = []
             for child in self:
-                leaves.extend(child.sub_leaves)
+                leaves.extend(child.sub_leaves())
             return leaves
     def siblings(self):
         if self.parent is None: return []
@@ -64,13 +72,14 @@ def tree_to_bare(tree):
         if isinstance(e,nltk.Tree):
             a.append(tree_to_bare)"""
 
-def shel_tree(t):
-    return ShelTree(*t)
+#def shel_tree(t):
+    #return ShelTree(t,t[1:])
     #ShelTree(t[0], [c if isinstance(c, basestring) else shel_tree(c) for c in t[1:]])
 
 def respond(input_str):
-    t = parser.raw_parse(input_str)
-    input_tr = shel_tree(t)
+    t = parser.nltk_parse(input_str)
+    print(t)
+    input_tr = ShelTree.convert(t)
     print(input_tr)
     return find_similar(input_tr)
     #TODO find similar grammar types as well as exact same grammar type
