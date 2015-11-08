@@ -27,12 +27,15 @@ def insert_struct(sentence,weight=1):
     global parser
     cursor = db.conn.cursor()
     res = insert_tree(cursor,parser.parse(sentence))
-    db.conn.commit()
     cursor.close()
     return res
 
 def feed(input, response, weight=1):
-    input_id = insert_struct(input)
+    if input is int:
+        input_id = input
+    else:
+        input_id = insert_struct(input)
     response_id = insert_struct(response)
     db.conn.execute("INSERT INTO nodes_to_nodes VALUES (?,?,?)",
                     (input_id, response_id, weight))
+    db.conn.commit()
