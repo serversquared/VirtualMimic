@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS nodes
 `word` varchar(20)
 );
 
-CREATE TABLE IF NOT EXISTS node_to_node
+CREATE TABLE IF NOT EXISTS nodes_to_nodes
 (
 `input` bigint,
 `response` bigint,
