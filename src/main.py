@@ -14,6 +14,8 @@ import getresponse
 import logparse.logparse as logparse
 import sentence_into_db as sid
 
+EXCEPTION_LIMIT = 10
+
 def getNumBetween(msg, first, last):
     # first and last are inclusive
     while True:
@@ -63,15 +65,27 @@ while True:
 
         print('Feeding (this will probably take awhile)...')
         prev = None
+        exceptCount = 0
+        prematureBreak = False
         for line in logs:
             if not prev is None:
                 try:
                     sid.feed(prev[1],line[1])
-                except TypeError as e:
+                except KeyboardInterrupt:
+                    sys.exit(0)
+                    exceptCount = 0
+                except Exception as e:
                     print(e)
                     prev = None
+                    exceptCount += 1
+                    if exceptCount >= EXCEPTION_LIMIT:
+                        prematureBreak = True
+                        break
             prev = line
-        print('Done feeding\n')
+        if prematureBreak:
+            print('Feeding cutoff prematurely\n')
+        else:
+            print('Done feeding\n')
 
     elif option == 't':
         while True:
