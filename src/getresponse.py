@@ -59,12 +59,13 @@ def findResponseID(input_id):
     weightSum = 0
     for resp in responses:
         weightSum += resp[1]
+        resp_id = resp[0]
         if weightSum >= weightLimit:
             break
 
     cursor.close()
 
-    return resp[0]
+    return resp_id
 
 def getResponse(sentence):
     try:
