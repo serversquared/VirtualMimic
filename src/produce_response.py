@@ -1,4 +1,5 @@
 from parser import parser
+from array_flatten import flatten
 import nltk
 import db
 """this is absolutely pointless
@@ -29,6 +30,25 @@ class nltk.Tree:
                 leaves.extend(child.sub_leaves)
             return leaves
 
+class ShelTree(nltk.Tree):
+    def __init__(self, node, children,parent=None):
+        if parent is not None:
+            self.parent = parent
+        super(self,node,children)
+        for child in self:
+            child.parent = self
+    def siblings(self):
+        if self.parent is None: return []
+        return self.parent.children
+    def has_ancestor(self,ancestor,by_id = False):
+        p = self.parent
+        while p is not None:
+            if by_id:
+                return True if id(p) == id(ancestor)
+            else:
+                return True if p == ancestor
+        return False
+
 def respond(input_str):
     input = parser.parse(input_str)
     #TODO find similar grammar types as well as exact same grammar type
@@ -40,14 +60,40 @@ def find_similar(tree):
     results = []
     stack = tree.sub_leaves
     for
-    while stack:
-        item = stack.pop!
-        statements = ["FROM nodes n1 WHERE type=? AND word=?"]
+    while stack and len(results) < 20:
+        item  = stack.pop()
+        indx = 1
+        froms = ["FROM nodes n1"]
+        wheres= ["WHERE n1.type=? AND n1.word=?"]
         paramss = [[ item.label(),item[0] ]]
+        ancestry = [item]
         count = 1
+        combinesql = lambda: (' '.join(forms))+(' '.join(wheres))
+        c.execute("SELECT COUNT(*) "+combinesql(),
+                  flatten(paramss))
+        count = c.fetchone()[0]
+        indx += 1
         while count:
-            c.execute("SELECT COUNT(*) "+statements[-1],paramss[-1])
+            forms.append("JOIN nodes n"+str(indx)+" ON n"+str(indx-1)+".parent_id=n"+str(indx)+".id ")
+            wheres.append(" AND n%d.type=?" % indx)
+            paramss.append(ancestry[-1].label())
+            ancestry.append(ancestry[-1].parent)
+            c.execute("SELECT COUNT(*) "+combinesql(),
+                      flatten(paramss))
             count = c.fetchone()[0]
+            indx += 1
+        froms.pop()
+        wheres.pop()
+        paramss.pop()
+        ancestry.pop()
+        c.execute("SELECT n"+int(indx)+".rowid "+combinesql(),
+                  flatten(paramss))
+        for row in c:
+            results.append(row[0])
+        stack = filter(lambda x: x.has_ancestor(ancestry[-1]),stack)
+
+        
+        
             
 
 
