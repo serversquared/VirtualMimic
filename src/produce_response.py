@@ -90,42 +90,47 @@ def debug_ex(c,*glob):
     
 def find_similar(tree):
     c = db.conn.cursor()
-    goal = 20
+    goal = 5
     results = []
     shel_stack = tree.sub_leaves()
     while shel_stack and len(results) < goal:
+        print("shel_stack size")
+        print(len(shel_stack))
         item  = shel_stack.pop()
         indx = 1
-        forms = ["FROM nodes n1 ",""]
+        froms = ["FROM nodes n1 ",""]
         wheres= [" WHERE n1.type=? AND n1.word=?",""]
         paramss = [[ item.label(),item[0] ],[]]
-        ancestry = [item]
+        ancestry = [item,item]
         count = 1
-        combinesql = lambda: (' '.join(forms))+(' '.join(wheres))
+        combinesql = lambda: (' '.join(froms))+(' '.join(wheres))
         debug_ex(c,"SELECT COUNT(*) "+combinesql(),
                   flatten(paramss))
         count = c.fetchone()[0]
         indx += 1
         while count:
-            forms.append(" JOIN nodes n"+str(indx)+" ON n"+str(indx-1)+".parent_id=n"+str(indx)+".id ")
+            froms.append(" JOIN nodes n"+str(indx)+" ON n"+str(indx-1)+".parent_id=n"+str(indx)+".rowid ")
             wheres.append(" AND n%d.type=?" % indx)
-            paramss.append(ancestry[-1].label())
+            print(ancestry)
+            paramss.append([ancestry[-1].label()])
             ancestry.append(ancestry[-1].parent)
+            print(paramss);
             debug_ex(c,"SELECT COUNT(*) "+combinesql(),
                       flatten(paramss))
             count = c.fetchone()[0]
             indx += 1
-        forms.pop()
+        froms.pop()
         wheres.pop()
         paramss.pop()
         ancestry.pop()
         indx -= 1
+        print(paramss)
         debug_ex(c,"SELECT n"+str(indx)+".rowid "+combinesql(),
                   flatten(paramss))
         for row in c:
             results.append(row[0])
-        shel_stack = filter(lambda x: x.has_ancestor(ancestry[-1]),
-                            shel_stack)
+        #shel_stack = filter(lambda x: x.has_ancestor(ancestry[-1]),
+                            #shel_stack)
     return results
 
 '''
