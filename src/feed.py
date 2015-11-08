@@ -1,5 +1,5 @@
-import stat_parser
 import sqlite3
+from parser import parser
 
 def feedSent_recursive(tree_seg, parent_id=None):
     #TODO
