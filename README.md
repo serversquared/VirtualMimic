@@ -4,4 +4,5 @@ Analyses sentences and subsequent responses to those sentences, and creates a ch
 ## Dependencies
 This project requires the following libraries:
 * nltk - Install it via pip2
-* [pyStatParser](https://github.com/emilmont/pyStatParser)
+* yoyo-migrations - ditto
+* [pyStatParser](https://github.com/emilmont/pyStatParser), included as a submodule.
