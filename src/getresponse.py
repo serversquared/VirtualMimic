@@ -18,7 +18,7 @@ def constrSen_recurser(par_id):
     cursor = db.conn.cursor()
     cursor.execute("SELECT rowid, word, type FROM nodes WHERE parent_id=?", (par_id,))
     for row in cursor.fetchall():
-        print(row)
+        #print(row)
         if row[2] == "WORD":
             words.append(row[1])
         else:
@@ -60,7 +60,7 @@ def findResponseID(input_id):
         responses.append((row[1], row[2]))
     weightLimit = random.uniform(0, totalWeight)
     weightSum = 0
-    print(len(responses))
+    #print(len(responses))
     for resp in responses:
         weightSum += resp[1]
         resp_id = resp[0]
@@ -74,7 +74,7 @@ def findResponseID(input_id):
 def getResponse(input_id):
     try:
         resp_id = findResponseID(input_id)
-        print(resp_id)
+        #print(resp_id)
         sentence = constrSen(resp_id)
     except TypeError as e:
         raise BadSentenceError("bad sentence: {}".format(e))

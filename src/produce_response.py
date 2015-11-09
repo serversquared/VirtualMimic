@@ -26,7 +26,7 @@ class ShelTree(nltk.Tree):
         """
         super(ShelTree,self).__init__(node,children)
         for child in self:
-            print(child)
+            #print(child)
             if not isinstance(child,basestring):
                 child.set_parent(self)
     def parent(self):
@@ -64,7 +64,7 @@ def respond(input_str):
     #TODO find similar grammar types as well as exact same grammar type
 
 def debug_ex(c,*glob):
-    #print(glob)
+    print(glob)
     c.execute(*glob)
 
 #https://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
