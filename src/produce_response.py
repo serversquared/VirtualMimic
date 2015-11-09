@@ -1,41 +1,26 @@
-from parser import parser
-from array_flatten import flatten
 import nltk
 from nltk import Tree
+
+from array_flatten import flatten
+from parser import parser
+from get_top_node import get_top_node
 import db
-"""this is absolutely pointless
-class Node():
-    def __init__(self,id,parent,type,order,word):
-        self.id    = id
-        self.parent= parent
-        self.type  = type
-        self.order = order
-        self.word  = word
-        self.children = []
-        c = db.conn.cursor()
-        c.execute("SELECT * FROM nodes WHERE parent_id=?",(id))
-        for row in c.fetchmany:
-            self.children.append(Node(*row))
-        c.close()
-"""
-#db.conn.cursor()
-#    resu
 
 class ShelTree(nltk.Tree):
     def __init__(self, node, children,parent=None):
-        print('node')
-        print(node)
-        print('children')
-        print(children)
+        #print('node')
+        #print(node)
+        #print('children')
+        #print(children)
         if parent is not None:
-            self.parent = parent
+            self._parent = parent
         """
         def bla(x):
-            print(x)
+            #print(x)
             if isinstance(x,list):
                 return ShelTree(x[0],x[1:],self)
             else:
-                print('else')
+                #print('else')
                 #raise NotImplementedError
         children = filter(bla,children) 
         """
@@ -43,7 +28,13 @@ class ShelTree(nltk.Tree):
         for child in self:
             print(child)
             if not isinstance(child,basestring):
-                child.parent = self
+                child.set_parent(self)
+    def parent(self):
+        self._parent
+        
+    def set_parent(self, val):
+        self._parent = val
+        
     def sub_leaves(self):
         if len(self) > 0 and isinstance(self[0],basestring):
             return [self]
@@ -53,10 +44,10 @@ class ShelTree(nltk.Tree):
                 leaves.extend(child.sub_leaves())
             return leaves
     def siblings(self):
-        if self.parent is None: return []
-        return self.parent.children
+        if self._parent is None: return []
+        return self._parent.children
     def has_ancestor(self,ancestor,by_id = False):
-        p = self.parent
+        p = self._parent
         while p is not None:
             if by_id and id(p) == id(ancestor):
                 return True 
@@ -64,29 +55,23 @@ class ShelTree(nltk.Tree):
                 return True
         return False
 
-#def tree_to_shel(tree):
-"""
-def tree_to_bare(tree):
-    a = [tree.label()]
-    for e in tree:
-        if isinstance(e,nltk.Tree):
-            a.append(tree_to_bare)"""
-
-#def shel_tree(t):
-    #return ShelTree(t,t[1:])
-    #ShelTree(t[0], [c if isinstance(c, basestring) else shel_tree(c) for c in t[1:]])
-
 def respond(input_str):
     t = parser.nltk_parse(input_str)
-    print(t)
+    #print(t)
     input_tr = ShelTree.convert(t)
-    print(input_tr)
+    #print(input_tr)
     return find_similar(input_tr)
     #TODO find similar grammar types as well as exact same grammar type
 
 def debug_ex(c,*glob):
-    print(glob)
+    #print(glob)
     c.execute(*glob)
+
+#https://stackoverflow.com/questions/480214/how-do-you-remove-duplicates-from-a-list-in-python-whilst-preserving-order
+def ordered_uniquify(seq):
+    seen = set()
+    seen_add = seen.add
+    return [ x for x in seq if not (x in seen or seen_add(x))]
     
 def find_similar(tree):
     c = db.conn.cursor()
@@ -94,70 +79,36 @@ def find_similar(tree):
     results = []
     shel_stack = tree.sub_leaves()
     while shel_stack and len(results) < goal:
-        print("shel_stack size")
-        print(len(shel_stack))
+        #print("shel_stack size")
+        #print(len(shel_stack))
         item  = shel_stack.pop()
-        indx = 1
-        froms = ["FROM nodes n1 ",""]
-        wheres= [" WHERE n1.type=? AND n1.word=?",""]
-        paramss = [[ item.label(),item[0] ],[]]
-        ancestry = [item,item]
-        count = 1
+        idx = 1
+        froms = ["FROM nodes n1 "]
+        wheres= [" WHERE n1.is_input=1 AND n1.type=? AND n1.word=?"]
+        paramss = [[ item.label(),item[0] ]]
+        ancestry = [item]
         combinesql = lambda: (' '.join(froms))+(' '.join(wheres))
-        debug_ex(c,"SELECT COUNT(*) "+combinesql(),
-                  flatten(paramss))
-        count = c.fetchone()[0]
-        indx += 1
-        while count:
-            froms.append(" JOIN nodes n"+str(indx)+" ON n"+str(indx-1)+".parent_id=n"+str(indx)+".rowid ")
-            wheres.append(" AND n%d.type=?" % indx)
-            print(ancestry)
-            paramss.append([ancestry[-1].label()])
-            ancestry.append(ancestry[-1].parent)
-            print(paramss);
-            debug_ex(c,"SELECT COUNT(*) "+combinesql(),
-                      flatten(paramss))
+        while True:
+            debug_ex(c,"SELECT COUNT(*) "+combinesql(),flatten(paramss))
             count = c.fetchone()[0]
-            indx += 1
-        froms.pop()
-        wheres.pop()
-        paramss.pop()
-        ancestry.pop()
-        indx -= 1
-        print(paramss)
-        debug_ex(c,"SELECT n"+str(indx)+".rowid "+combinesql(),
-                  flatten(paramss))
-        for row in c:
-            results.append(row[0])
-        #shel_stack = filter(lambda x: x.has_ancestor(ancestry[-1]),
-                            #shel_stack)
-    return results
-
-'''
-def depth_search(c,node,results,num_results):
-    if type(node[0]) == nltk.Tree:
-        for child in node:
-            res = depth_search(c,child,results,num_results)
-            break if res
-        if res:
-            
-    else: #this is a ending node
-        c.execute("SELECT COUNT(*) FROM nodes WHERE type=?,word=?",
-                  (node.label(),node[0]))
-        count = c.fetchone()[0]
-        return count
-
-
-
-
-        
-        if results.length + count > num_results:
-            #wooo, were done
-            c.execute("""SELECT * FROM nodes WHERE type=?,word=?
-                      LIMIT ?""",
-                      (node.label(), node[0], num_results - results.length))
-            return true
-        else:
-            c.execute("""SELECT * FROM nodes WHERE type=?,word=?""",
-                      (node.label(),node[0]))
-            return c.findall()'''
+            if (not ancestry[-1].parent()) or (not count):
+                if not ancestry[-1].parent():
+                    #froms.pop()
+                    wheres.pop()
+                    paramss.pop()
+                    ancestry.pop()
+                debug_ex(c,("SELECT n%d.rowid " % idx)+combinesql(),
+                         flatten(paramss))
+                for row in c.fetchall():
+                    nodeid = get_top_node(row[0])
+                    results.append(nodeid)
+                break
+            else:
+                ancestry.append(ancestry[-1].parent())
+            idx += 1
+            froms.append(" JOIN nodes n%d "
+                         "ON n%d.parent_id=n%d.rowid" % (idx,idx-1,idx))
+            wheres.append(" AND n%d.type=?" % idx)
+            paramss.append([ancestry[-1].label()])
+    results.reverse()
+    return ordered_uniquify(results)
